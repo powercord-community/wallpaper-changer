@@ -27,6 +27,14 @@ module.exports = class WallpaperChanger extends Plugin {
         result: args[0] === '--no-embed' ? `<${this.wallpaper}>` : this.wallpaper
       })
     );
+
+    this.registerCommand(
+      'wpnext',
+      [ 'wpn' ],
+      'Changes the wallpaper',
+      '{c}',
+      this.changeWallpaper.bind(this)
+    );
   }
 
   pluginWillUnload () {
@@ -40,19 +48,15 @@ module.exports = class WallpaperChanger extends Plugin {
   }
 
   async changeWallpaper () {
-    console.log('changing')
     this.wallpaper = null;
     const wallpapers = this.settings.get('wallpapers', []);
     if (wallpapers.length === 0) {
-      console.log('lol')
       this.styleElement.innerText = '';
       return;
     }
-    console.log('ok')
 
     this.wallpaper = wallpapers[Math.floor(Math.random() * wallpapers.length)];
     const selector = this.settings.get('selector', 'body');
     this.styleElement.innerText = `${selector} { background-image: url('${encodeURI(this.wallpaper)}') }`;
-    console.log('???')
   }
 };
