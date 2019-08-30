@@ -1,10 +1,14 @@
+const { React, getModule } = require('powercord/webpack');
 const { Plugin } = require('powercord/entities');
-const { React } = require('powercord/webpack');
+const { get } = require('powercord/http');
 
 const Settings = require('./Settings');
 
 module.exports = class WallpaperChanger extends Plugin {
-  startPlugin () {
+  async startPlugin () {
+    const currentChannelStore = await getModule([ 'getChannelId' ]);
+    const channelStore = await getModule([ 'getChannel' ]);
+
     this.styleElement = document.createElement('style');
     this.styleElement.id = 'wallch-css';
     document.head.appendChild(this.styleElement);
@@ -22,10 +26,22 @@ module.exports = class WallpaperChanger extends Plugin {
       [ 'wps' ],
       'Sends the link of the current wallpaper in the chat',
       '{c} [--no-embed]',
-      (args) => (this.wallpaper && {
-        send: true,
-        result: args[0] === '--no-embed' ? `<${this.wallpaper}>` : this.wallpaper
-      })
+      (args) => {
+        if (this.wallpaper) {
+          const chanId = currentChannelStore.getChannelId();
+          const channel = channelStore.getChannel(chanId);
+          if (this.wallpaper.nsfw && !channel.nsfw && !args.includes('--force')) {
+            return {
+              send: false,
+              result: 'NSFW in a non-nsfw channel, are you sure? Use --force to send anyway.'
+            };
+          }
+          return {
+            send: true,
+            result: args.includes('--no-embed') ? `<${this.wallpaper.src}>` : this.wallpaper.src
+          };
+        }
+      }
     );
 
     this.registerCommand(
@@ -49,7 +65,38 @@ module.exports = class WallpaperChanger extends Plugin {
 
   async changeWallpaper () {
     this.wallpaper = null;
-    const wallpapers = this.settings.get('wallpapers', []);
+    let wallpapers = [];
+    switch (this.settings.get('source', 0)) {
+      case 0:
+        wallpapers = this.settings.get('wallpapers', []).map(w => ({
+          src: w,
+          nsfw: false
+        }));
+        break;
+      case 1:
+        /* eslint-disable */
+        const cat = (
+          (this.settings.get('wallhaven-c-gen', true) ? '1' : '0') +
+          (this.settings.get('wallhaven-c-weeb', true) ? '1' : '0') +
+          (this.settings.get('wallhaven-c-ppl', true) ? '1' : '0')
+        );
+        const pur = (
+          (this.settings.get('wallhaven-p-sfw', true) ? '1' : '0') +
+          (this.settings.get('wallhaven-p-uwu', true) ? '1' : '0') +
+          ((this.settings.get('wallhaven-p-nsfw', true) && !!this.settings.get('wallhaven-key', '')) ? '1' : '0')
+        );
+        const search = encodeURIComponent(this.settings.get('wallhaven-search', ''));
+        const api = !!this.settings.get('wallhaven-key', '') ? `&apikey=${this.settings.get('wallhaven-key')}` : '';
+        const url = `https://wallhaven.cc/api/v1/search?q=${search}&categories=${cat}&purity=${pur}&sorting=random${api}`;
+        console.log(url);
+        wallpapers = ((await get(url).then(res => res.body)).data || []).map(w => ({
+          src: w.path,
+          nsfw: w.purity === 'nsfw'
+        }));
+        break;
+      /* eslint-enable */
+    }
+
     if (wallpapers.length === 0) {
       this.styleElement.innerText = '';
       return;
@@ -57,6 +104,6 @@ module.exports = class WallpaperChanger extends Plugin {
 
     this.wallpaper = wallpapers[Math.floor(Math.random() * wallpapers.length)];
     const selector = this.settings.get('selector', 'body');
-    this.styleElement.innerText = `${selector} { background-image: url('${encodeURI(this.wallpaper)}') }`;
+    this.styleElement.innerText = `${selector} { background-image: url('${encodeURI(this.wallpaper.src)}') }`;
   }
 };
