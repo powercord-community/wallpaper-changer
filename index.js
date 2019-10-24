@@ -88,7 +88,6 @@ module.exports = class WallpaperChanger extends Plugin {
         const search = encodeURIComponent(this.settings.get('wallhaven-search', ''));
         const api = !!this.settings.get('wallhaven-key', '') ? `&apikey=${this.settings.get('wallhaven-key')}` : '';
         const url = `https://wallhaven.cc/api/v1/search?q=${search}&categories=${cat}&purity=${pur}&sorting=random${api}`;
-        console.log(url);
         wallpapers = ((await get(url).then(res => res.body)).data || []).map(w => ({
           src: w.path,
           nsfw: w.purity === 'nsfw'
