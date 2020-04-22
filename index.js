@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2020 Bowser65
+ * Licensed under the Open Software License version 3.0
+ */
+
 const { React, getModule } = require('powercord/webpack');
 const { Plugin } = require('powercord/entities');
 const { get } = require('powercord/http');
