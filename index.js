@@ -21,17 +21,21 @@ module.exports = class WallpaperChanger extends Plugin {
     this.interval = setInterval(() => this.changeWallpaper(), this.settings.get('interval', 60) * 60 * 1000);
     this.changeWallpaper();
 
-    this.registerSettings('wallpaper-changer', 'Wallpaper Changer', props => React.createElement(Settings, {
-      ...props,
-      plugin: this
-    }));
+    powercord.api.settings.registerSettings('wallpaper-changer', {
+      category: this.entityID,
+      label: 'Wallpaper Changer',
+      render: props => React.createElement(Settings, {
+        ...props,
+        plugin: this
+      })
+    });
 
-    this.registerCommand(
-      'wpshare',
-      [ 'wps' ],
-      'Sends the link of the current wallpaper in the chat',
-      '{c} [--no-embed]',
-      (args) => {
+    powercord.api.commands.registerCommand({
+      command: 'wpshare',
+      aliases: [ 'wps' ],
+      description: 'Sends the link of the current wallpaper in the chat',
+      usage: '{c} [--no-embed]',
+      executor: (args) => {
         if (this.wallpaper) {
           const chanId = currentChannelStore.getChannelId();
           const channel = channelStore.getChannel(chanId);
@@ -47,18 +51,21 @@ module.exports = class WallpaperChanger extends Plugin {
           };
         }
       }
-    );
+    });
 
-    this.registerCommand(
-      'wpnext',
-      [ 'wpn' ],
-      'Changes the wallpaper',
-      '{c}',
-      this.changeWallpaper.bind(this)
-    );
+    powercord.api.commands.registerCommand({
+      command: 'wpnext',
+      aliases: [ 'wpn' ],
+      description: 'Changes the wallpaper',
+      usage: '{c}',
+      executor: this.changeWallpaper.bind(this)
+    });
   }
 
   pluginWillUnload () {
+    powercord.api.settings.unregisterSettings('wallpaper-changer');
+    powercord.api.commands.unregisterCommand('wpnext');
+    powercord.api.commands.unregisterCommand('wpshare');
     document.querySelector('#wallch-css').remove();
     clearInterval(this.interval);
   }
@@ -108,6 +115,6 @@ module.exports = class WallpaperChanger extends Plugin {
 
     this.wallpaper = wallpapers[Math.floor(Math.random() * wallpapers.length)];
     const selector = this.settings.get('selector', 'body');
-    this.styleElement.innerText = `${selector} { background-image: url('${encodeURI(this.wallpaper.src)}') }`;
+    this.styleElement.innerText = `${selector} { background-image: url('${encodeURI(this.wallpaper.src)}') !important }`;
   }
 };

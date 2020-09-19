@@ -1,6 +1,6 @@
 # Wallpaper Changer
 
-Changes your Discord background to a random image you configured every x seconds
+A tool that changes your wallpaper periodically, using either a list of wallpapers or a random one from a wallpaper source like wallhaven.cc.
 
 ## Note
 

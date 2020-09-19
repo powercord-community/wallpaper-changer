@@ -1,7 +1,7 @@
 {
   "name": "Wallpaper Changer",
-  "version": "1.1.0",
-  "description": "Changes your Discord background to a random image every x seconds",
+  "version": "1.1.1",
+  "description": "A tool that changes your wallpaper periodically, using either a list of wallpapers or a random one from a wallpaper source like wallhaven.cc. Note: Requires a theme making the Discord window transparent for it to function.",
   "author": "Bowser65",
   "license": "OSL-3.0"
 }
