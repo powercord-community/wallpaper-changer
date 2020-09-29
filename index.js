@@ -3,7 +3,7 @@
  * Licensed under the Open Software License version 3.0
  */
 
-const { React, getModule } = require('powercord/webpack');
+const { React, channels, getModule } = require('powercord/webpack');
 const { Plugin } = require('powercord/entities');
 const { get } = require('powercord/http');
 
@@ -11,7 +11,6 @@ const Settings = require('./Settings');
 
 module.exports = class WallpaperChanger extends Plugin {
   async startPlugin () {
-    const currentChannelStore = await getModule([ 'getChannelId' ]);
     const channelStore = await getModule([ 'getChannel' ]);
 
     this.styleElement = document.createElement('style');
@@ -37,7 +36,7 @@ module.exports = class WallpaperChanger extends Plugin {
       usage: '{c} [--no-embed]',
       executor: (args) => {
         if (this.wallpaper) {
-          const chanId = currentChannelStore.getChannelId();
+          const chanId = channels.getChannelId();
           const channel = channelStore.getChannel(chanId);
           if (this.wallpaper.nsfw && !channel.nsfw && !args.includes('--force')) {
             return {
