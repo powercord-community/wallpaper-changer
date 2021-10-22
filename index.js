@@ -11,7 +11,7 @@ const Settings = require('./Settings');
 
 module.exports = class WallpaperChanger extends Plugin {
   async startPlugin () {
-    const channelStore = await getModule([ 'getChannel' ]);
+    const channelStore = await getModule([ 'getChannel', 'getDMFromUserId' ]);
 
     this.styleElement = document.createElement('style');
     this.styleElement.id = 'wallch-css';
